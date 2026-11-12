@@ -2,10 +2,11 @@
 Extrae cada serie de precios del archivo Excel de Bloomberg y guarda un CSV
 por activo en la carpeta data/.
 
-Estructura del Excel (hoja 'Hoja1'):
+Estructura del Excel de commodities (hoja 'Hoja1'):
     - Fila 0: nombres de los activos (la primera celda esta vacia).
     - Fila 1: subencabezado basura ('#N/A Requesting Data...').
-    - Columna 0: fechas (a partir de la fila 2).
+    - Fila 2: subencabezado de columnas ('Dates' / 'PX_LAST').
+    - Columna 0: fechas (a partir de la fila 3).
     - Columnas 1..N: precios de cada activo.
 
 Cada CSV resultante tiene el formato:
@@ -18,9 +19,13 @@ import pandas as pd
 
 # Rutas relativas a la ubicacion del script
 BASE_DIR = Path(__file__).resolve().parent
-EXCEL_PATH = BASE_DIR / "data" / "raw" / "tecnology_exchange.xlsx"
+EXCEL_PATH = BASE_DIR / "data" / "raw" / "comodities.xlsx"
 OUTPUT_DIR = BASE_DIR / "data"
 SHEET_NAME = "Hoja1"
+
+# Numero de filas de cabecera antes de que empiecen los datos reales.
+# Fila 0: nombres de activos, fila 1: '#N/A...', fila 2: 'Dates'/'PX_LAST'.
+HEADER_ROWS = 3
 
 
 def sanitize_filename(name: str) -> str:
@@ -48,8 +53,8 @@ def main() -> None:
     # Fila 0: nombres de activos. Columna 0 esta vacia (es la de fechas).
     asset_names = raw.iloc[0].tolist()
 
-    # Los datos reales empiezan en la fila 2 (indice 2).
-    data = raw.iloc[2:].reset_index(drop=True)
+    # Los datos reales empiezan despues de las filas de cabecera.
+    data = raw.iloc[HEADER_ROWS:].reset_index(drop=True)
 
     # Columna 0 -> fechas
     dates = pd.to_datetime(data.iloc[:, 0]).dt.strftime("%Y-%m-%d")
