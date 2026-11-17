@@ -16,8 +16,6 @@ en `informe.pdf` (fuente LaTeX en `main.tex`).
 |---|---|
 | `main.ipynb` | Notebook principal. Analiza la serie `DEXCAUS`, contrasta los supuestos del MBG, estima $\hat\mu$ y $\hat\sigma$, pronostica sobre la muestra y valora las 20 opciones Call europeas por los cuatro métodos. |
 | `data/DEXCAUS.csv` | Serie del tipo de cambio CAD/USD (formato `observation_date,DEXCAUS`), 250 observaciones válidas entre nov-2025 y nov-2026. Es el único insumo del notebook. |
-| `extract_series.py` | Script de preprocesamiento (opcional): extrae series desde un Excel de Bloomberg hacia CSV por activo. |
-| `cleaning.py` | Script de preprocesamiento (opcional): recorta cada serie a las 250 observaciones más recientes. |
 | `main.tex` / `informe.pdf` | Informe del proyecto en LaTeX y su versión compilada en PDF. |
 | `Citas.bib` | Bibliografía del informe. |
 | `index.html` | Página de inicio que enlaza a los resultados exportados. |
@@ -110,10 +108,6 @@ todos los gráficos y tablas.
 
 - La carpeta `venv/` está excluida del control de versiones mediante
   `.gitignore`; cada quien crea su propio entorno con `requirements.txt`.
-- `extract_series.py` y `cleaning.py` son utilidades de preprocesamiento que
-  operan sobre datos crudos (Excel de Bloomberg y carpetas intermedias) no
-  incluidos en el repositorio; no son necesarias para ejecutar el análisis, pues
-  `data/DEXCAUS.csv` ya está listo.
 - No rechazar la hipótesis nula de una prueba no demuestra que el supuesto sea
   cierto; indica que no hay evidencia en contra con la muestra disponible
   (250 observaciones).
