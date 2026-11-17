@@ -100,7 +100,7 @@ conjunto de datos `data/DEXCAUS.csv`.
 
 ### Ver los resultados sin ejecutar
 
-Abre `index.html` en el navegador, o directamente
+Visualiza los resultados desde https://oscardi777.github.io/ProyectoFinalEstocasticosII/. O si se prefiere abre `index.html` en el navegador, o directamente
 `results-html/runCAN-USD_Crncy.html`, para consultar la ejecución exportada con
 todos los gráficos y tablas.
 
