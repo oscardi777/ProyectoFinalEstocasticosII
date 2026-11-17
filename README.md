@@ -1,40 +1,65 @@
 # Proyecto Final — Procesos Estocásticos II
 
-Modelación de series financieras como **Movimiento Browniano Geométrico (MBG)**,
-verificación de los supuestos del modelo y valoración de opciones europeas mediante
-Black–Scholes y simulación de Monte Carlo.
+Valoración de opciones Call europeas sobre la tasa de cambio **CAD/USD** (serie
+FRED `DEXCAUS`), modelada como **Movimiento Browniano Geométrico (MBG)**. El
+proyecto verifica empíricamente los supuestos del MBG sobre los retornos
+logarítmicos, estima sus parámetros y valora las opciones por cuatro métodos:
+Black–Scholes (fórmula cerrada), simulación de Monte Carlo, árbol binomial de
+Cox–Ross–Rubinstein y diferencias finitas explícitas.
+
+El informe completo del proyecto (paso a paso, resultados y conclusiones) está
+en `informe.pdf` (fuente LaTeX en `main.tex`).
 
 ## Contenido del repositorio
 
 | Archivo / carpeta | Descripción |
 |---|---|
-| `notebookMultiVersion.ipynb` | Notebook principal. Modela varios activos como MBG, estima $\hat\mu$ y $\hat\sigma$, contrasta los supuestos del modelo (C1–C5) y valora opciones europeas. |
-| `notebookFelipeVersion.ipynb` | Variante del análisis aplicada al tipo de cambio USD/CAD (serie FRED `DEXCAUS`), incluyendo pronóstico simulado con 10.000 trayectorias. |
-| `extract_series.py` | Script que lee el Excel de Bloomberg (`data/raw/tecnology_exchange.xlsx`) y exporta un CSV por activo en `data/`. |
-| `requirements.txt` | Dependencias de Python del proyecto. |
-| `data/` | Series de precios en CSV (formato `date,<activo>`), listas para los notebooks. |
-| `data/raw/` | Datos crudos de origen (Excel de Bloomberg). |
+| `main.ipynb` | Notebook principal. Analiza la serie `DEXCAUS`, contrasta los supuestos del MBG, estima $\hat\mu$ y $\hat\sigma$, pronostica sobre la muestra y valora las 20 opciones Call europeas por los cuatro métodos. |
+| `data/DEXCAUS.csv` | Serie del tipo de cambio CAD/USD (formato `observation_date,DEXCAUS`), 250 observaciones válidas entre nov-2025 y nov-2026. Es el único insumo del notebook. |
+| `extract_series.py` | Script de preprocesamiento (opcional): extrae series desde un Excel de Bloomberg hacia CSV por activo. |
+| `cleaning.py` | Script de preprocesamiento (opcional): recorta cada serie a las 250 observaciones más recientes. |
+| `main.tex` / `informe.pdf` | Informe del proyecto en LaTeX y su versión compilada en PDF. |
+| `Citas.bib` | Bibliografía del informe. |
+| `index.html` | Página de inicio que enlaza a los resultados exportados. |
+| `results-html/runCAN-USD_Crncy.html` | Ejecución del notebook exportada a HTML (resultados y gráficos sin necesidad de ejecutar). |
+| `images/` | Figuras generadas por el notebook y usadas en el informe. |
 | `theory/` | Material teórico de referencia (Black–Scholes, valoración riesgo-neutral, martingalas, métodos numéricos). |
-| `results-html/` | Carpeta de salida para resultados exportados en HTML. |
+| `requirements.txt` | Dependencias de Python del proyecto. |
 | `enunciado.pdf` | Enunciado del proyecto. |
 
-### Series de datos en `data/`
+## Verificación de los supuestos del MBG
 
-- `AAPL_US_Equity.csv`, `MSFT_US_Equity.csv`, `NU_US_Equity.csv`, `CIB_US_Equity.csv` — acciones.
-- `NDX_Index.csv`, `SPX_Index.csv` — índices bursátiles.
-- `EUR_Curncy.csv`, `COP_REGN_Curncy.csv`, `DEXCAUS.csv` — divisas / tipos de cambio.
+El notebook contrasta sobre los **retornos logarítmicos** y las **perturbaciones
+estandarizadas** las tres condiciones que exige el MBG, a un nivel de
+significancia del 5 %:
 
-## Pruebas aplicadas al supuesto de MBG
+- **Normalidad de los retornos** (incrementos gaussianos): pruebas de
+  Jarque-Bera, Kolmogorov-Smirnov, Anderson-Darling y Lilliefors, respaldadas
+  por el histograma y el gráfico Q-Q.
+- **Estacionariedad de las perturbaciones** (incrementos independientes, sin
+  tendencia): prueba de raíz unitaria Dickey-Fuller Aumentada.
+- **Homocedasticidad** (volatilidad $\sigma$ constante): test ARCH de Engle y
+  prueba de Ljung-Box sobre los residuos al cuadrado, más la gráfica de
+  volatilidad acumulada.
 
-Ambos notebooks siguen la misma lógica de contraste:
+Como diagnóstico complementario de la ausencia de memoria de largo plazo se
+calculan la **dimensión fractal** y el **exponente de Hurst** (referencia para
+un movimiento browniano: DF ≈ 1,5, EH ≈ 0,5, DF + EH ≈ 2).
 
-- **C1** — Normalidad de los log-retornos.
-- **C2** — Independencia de los log-retornos.
-- **C3** — Varianza constante.
-- **C4** — Estabilidad de parámetros entre subperiodos.
-- **C5** — Simulación Monte Carlo frente a la trayectoria real.
+## Estimación de parámetros y valoración
 
-## Cómo ejecutarlo rápido
+- **Estimación.** Los parámetros $\hat\mu$ y $\hat\sigma$ se estiman por dos
+  vías: retornos simples bajo la discretización de Euler-Maruyama y log-retornos
+  con la solución exacta del MBG. Sobre la muestra se evalúa el pronóstico
+  (inducido y simulado) con el criterio de un MAPE promedio inferior al 5 %.
+- **Valoración.** Con $r=0{,}05$, $S_0$ igual al último precio observado y la
+  volatilidad histórica estimada, se simulan 10.000 trayectorias fuera de
+  muestra por cada maduración $T\in\{1,\tfrac12,\tfrac13,\tfrac14\}$ años. Los
+  cinco precios de ejercicio $K$ por maduración son los percentiles 10, 25, 50,
+  75 y 90 de $S_T$. Las 20 combinaciones $(T,K)$ se valoran con los cuatro
+  métodos, tomando Black-Scholes como referencia.
+
+## Cómo ejecutarlo
 
 Requisitos previos: **Python 3.11+** y `git`.
 
@@ -63,26 +88,32 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. (Opcional) Regenerar los CSV desde el Excel original
-
-Los CSV ya están en `data/`, pero si quieres reconstruirlos desde el Excel de Bloomberg:
-
-```bash
-python extract_series.py
-```
-
-### 4. Abrir los notebooks
+### 3. Abrir el notebook
 
 ```bash
 jupyter lab
 ```
 
-Abre `notebookMultiVersion.ipynb` (análisis principal) o `notebookFelipeVersion.ipynb`
-y ejecuta las celdas en orden (menú *Run > Run All*). Los parámetros configurables
-(activo a analizar, ventanas de estimación, etc.) están en la sección **"Parámetros
-y funciones configurables"** al inicio del notebook.
+Abre `main.ipynb` y ejecuta las celdas en orden (menú *Run > Run All*). Los
+parámetros configurables (ventanas de estimación, número de simulaciones, tasa
+libre de riesgo, etc.) están en la sección **"Parámetros y funciones
+configurables"** al inicio del notebook. El notebook está fijado al único
+conjunto de datos `data/DEXCAUS.csv`.
+
+### Ver los resultados sin ejecutar
+
+Abre `index.html` en el navegador, o directamente
+`results-html/runCAN-USD_Crncy.html`, para consultar la ejecución exportada con
+todos los gráficos y tablas.
 
 ## Notas
 
-- La carpeta `venv/` está excluida del control de versiones mediante `.gitignore`;
-  cada quien crea su propio entorno con `requirements.txt`.
+- La carpeta `venv/` está excluida del control de versiones mediante
+  `.gitignore`; cada quien crea su propio entorno con `requirements.txt`.
+- `extract_series.py` y `cleaning.py` son utilidades de preprocesamiento que
+  operan sobre datos crudos (Excel de Bloomberg y carpetas intermedias) no
+  incluidos en el repositorio; no son necesarias para ejecutar el análisis, pues
+  `data/DEXCAUS.csv` ya está listo.
+- No rechazar la hipótesis nula de una prueba no demuestra que el supuesto sea
+  cierto; indica que no hay evidencia en contra con la muestra disponible
+  (250 observaciones).
